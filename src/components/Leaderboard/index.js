@@ -1,6 +1,10 @@
 import {useEffect, useState} from 'react'
 import Loader from 'react-loader-spinner'
-import {LeaderboardContainer, LoadingViewContainer} from './styledComponents'
+import {
+  LeaderboardContainer,
+  LoadingViewContainer,
+  ErrorMessage,
+} from './styledComponents'
 import LeaderboardTable from '../LeaderboardTable'
 
 const apiStatusConstants = {
@@ -23,7 +27,7 @@ const Leaderboard = () => {
         method: 'GET',
         headers: {
           Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJhaHVsIiwicm9sZSI6IlBSSU1FX1VTRVIiLCJpYXQiOjE2MjMwNjU1MzJ9.D13s5wN3Oh59aa_qtXMo3Ec4wojOx0EZh8Xr5C5sRkU',
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.yJ1c2VybmFtZSI6InJhaHVsIiwicm9sZSI6IlBSSU1FX1VTRVIiLCJpYXQiOjE2MjMwNjU1MzJ9.D13s5wN3Oh59aa_qtXMo3Ec4wojOx0EZh8Xr5C5sRkU',
         },
       }
       setResponse({
@@ -33,26 +37,30 @@ const Leaderboard = () => {
       })
       const response = await fetch(url, options)
       const responseData = await response.json()
-      const updatedData = responseData.leaderboard_data.map(each => ({
-        id: each.id,
-        language: each.language,
-        name: each.name,
-        profileImageUrl: each.profile_image_url,
-        rank: each.rank,
-        score: each.score,
-        timeSpent: each.time_spent,
-      }))
+
       if (response.ok) {
+        const updatedData = responseData.leaderboard_data.map(each => ({
+          id: each.id,
+          language: each.language,
+          name: each.name,
+          profileImageUrl: each.profile_image_url,
+          rank: each.rank,
+          score: each.score,
+          timeSpent: each.time_spent,
+        }))
         setResponse({
           status: apiStatusConstants.success,
           data: updatedData,
           errMsg: null,
         })
       } else {
+        console.log(response)
+        console.log(responseData)
+        const errorMsg = responseData.error_msg
         setResponse({
           status: apiStatusConstants.failure,
           data: null,
-          errMsg: 'UnAuthorized Agent',
+          errMsg: errorMsg,
         })
       }
     }
@@ -69,7 +77,10 @@ const Leaderboard = () => {
       const {data} = apiResponse
       return <LeaderboardTable leaderboardData={data} />
     }
-    const renderFailureView = () => <h2>UnAuthorized Agent</h2>
+    const renderFailureView = () => {
+      const {errMsg} = apiResponse
+      return <ErrorMessage>{errMsg}</ErrorMessage>
+    }
     const {status} = apiResponse
     switch (status) {
       case apiStatusConstants.inProgress:
